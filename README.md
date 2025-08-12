@@ -1,5 +1,6 @@
 # AYUSHYA
 Health buddy for chronic Patients
+![AYUSHYA](Ayushya.png)
 # Problem Statement: ĀROGYA
 
  A Contextually Adaptive, Multilingual, and Ethically Persuasive Framework for Habit Formation in Chronic Disease Management
