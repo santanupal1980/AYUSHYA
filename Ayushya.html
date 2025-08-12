@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🌿 Ayushya: Your Chronic Care Companion</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Tailwind config for dark mode (before tailwind loads) -->
+  <!-- Load Tailwind via CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="icon" href="favicon.ico">
+<!-- Optional: Configure Tailwind (must come after loading) -->
+<script>
+  tailwind.config = {
+    darkMode: 'class', // or 'media' for system preference
+    theme: {
+      extend: {
+        // You can customize colors or more here if needed
+      }
+    }
+  };
+</script>
+  <script src="Ayushya.js"></script> 
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6366f1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <!-- <link rel="icon" href="icon-192.png" sizes="192x192"> -->
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    canvas { width: 100% !important; height: 180px !important; }
+    .chat-bubble { padding: 8px 12px; margin: 4px 0; border-radius: 8px; display: inline-block; max-width: 80%; }
+    .from-user { background-color: #d1fae5; align-self: flex-end; }
+    .from-ai { background-color: #e0f2fe; align-self: flex-start; }
+    .fade-in { animation: fadeIn 1s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    button.disabled { background-color: #d1d5db !important; cursor: not-allowed; }
+    .modal { display: none; position: fixed; z-index: 50; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; padding: 1.5rem; border-radius: 0.5rem; width: 90%; max-width: 600px; }
+    .nudge { background: linear-gradient(to right, #ecfdf5, #d1fae5); border-left: 6px solid #10b981; padding: 0.75rem; border-radius: 0.5rem; font-size: 0.9rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); animation: bounceIn 0.6s ease-in-out; }
+    @keyframes bounceIn { 0% { transform: scale(0.95); opacity: 0; } 60% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); } }
+  </style>
+  <style>
+  .chat-bubble {
+    max-width: 90%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    position: relative;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    animation: fadeIn 0.6s ease-out;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.05);
+    background-color: #FEF3C7; /* Light yellow */
+    color: #78350f;
+  }
+
+  .dark .chat-bubble {
+    background-color: #78350f33;
+    color: #facc15;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+</head>
+<!-- <body class="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 font-sans min-h-screen"> -->
+<body class="bg-white text-black dark:bg-gray-900 dark:text-green-800 transition-colors duration-300">
+<!-- <div class="bg-white dark:bg-gray-800 p-4 rounded shadow text-gray-800 dark:text-gray-100 transition-colors"> -->
+
+  <div class="max-w-7xl mx-auto p-4">
+    <h1 class="text-4xl font-extrabold mb-6 text-center text-red-800 tracking-wide">🌿 Ayushya: Your Chronic Care Companion</h1>
+
+    <!-- Tabs -->
+    <div class="flex justify-center flex-wrap gap-4 mb-6">
+      <button onclick="switchTab('dashboard')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full shadow-lg">📊 Dashboard</button>
+      <button onclick="switchTab('conversation')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full shadow-lg">💬 Conversation</button>
+      <button onclick="switchTab('journaling')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg">📓 Journaling</button>
+      <button onclick="switchTab('settings')" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-full shadow-lg">⚙️ Settings</button>
+    </div>
+
+    <!-- DASHBOARD TAB -->
+    <div id="dashboard" class="tab-content active">
+      <!-- Notification Panel -->
+      <div class="bg-green-50 p-4 rounded-2xl shadow-xl mb-6 border-l-8 border-green-400">
+       <div class="flex justify-between items-center mb-2">
+          <h3 class="text-xl font-bold text-green-800 mb-3">🔔 Nudges & Insights</h3>
+          <div>
+            <button onclick="prevNotif()" class="px-2 text-lg text-gray-600 hover:text-indigo-700">&lt;</button>
+            <button onclick="nextNotif()" class="px-2 text-lg text-gray-600 hover:text-indigo-700">&gt;</button>
+          </div>
+        </div>
+        <ul id="notificationList" class="space-y-2 text-sm"></ul>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div class="bg-blue-50 p-4 rounded shadow-md">
+        <!-- <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-4 rounded shadow transition-colors"> -->
+          <h3 class="font-semibold text-lg mb-2">💊 Medication Reminder</h3>
+          <ul class="text-sm list-disc pl-5 text-gray-700">
+            <li>08:00 AM - Blood Pressure Med</li>
+            <li>12:00 PM - Vitamin D</li>
+            <li>08:00 PM - Sleep Aid</li>
+          </ul>
+        </div>
+        <div class="bg-white p-4 rounded-2xl shadow-lg col-span-2">
+          <!-- <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-4 rounded shadow transition-colors col-span-2"> -->
+          <h3 class="text-lg font-semibold mb-2">🧘 Care Plan</h3>
+          <ul class="list-disc pl-6 space-y-1 text-sm">
+            <li>Week 1-4: Daily 10-minute walk & log BP readings</li>
+            <li>Week 5-8: Add light strength training twice/week</li>
+            <li>Week 9-12: Begin dietary logging, reduce sodium intake</li>
+            <li>Week 13-24: Increase walk to 30 minutes, check-ins bi-weekly</li>
+          </ul>
+        </div>
+        <div class="bg-red-50 p-4 rounded-2xl shadow-lg">
+        <!-- <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-4 rounded shadow transition-colors"> -->
+          <h3 class="text-lg font-semibold mb-2">📅 Appointments</h3>
+          <ul class="list-disc pl-6 text-sm">
+            <li>🩺 7/05 - Cardiologist follow-up at 10:00 AM</li>
+            <li>🧪 7/10 - Blood test appointment at 8:00 AM</li>
+            <li>📞 7/12 - Phone consultation with dietitian</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+      <!-- Health Summary Cards -->
+      
+      <h3 class="text-xl font-bold text-green-800 mb-3">💪 Health Summary</h3>
+       
+      <!-- Toggle Button -->
+<!-- Toggle Button -->
+<!-- <button id="toggleInsights" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded shadow">
+  Show Weekly Insights
+</button>-->
+
+<!-- Hidden Weekly Insights Panel -->
+<!-- <div id="weeklyInsights" class="hidden mt-4 p-4 bg-gray-100 rounded-lg shadow transition-all duration-300">
+  <h2 class="text-lg font-semibold mb-2">📊 Weekly Sleep & Stress Insights</h2>
+  <div id="insightsContent" class="text-sm text-gray-800 space-y-2">-->
+    <!-- JavaScript will inject content here -->
+  <!-- </div>
+</div>  -->
+
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+  <div class="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-lg cursor-pointer hover:ring-2 ring-emerald-400" onclick="expandChart('bpChart')">
+    <h3 class="font-semibold mb-2 text-indigo-700 dark:text-indigo-300">🩺 Blood Pressure</h3>
+    <canvas id="bpChart"></canvas>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-lg cursor-pointer hover:ring-2 ring-cyan-400" onclick="expandChart('hydrationChart')">
+    <h3 class="font-semibold mb-2 text-sky-700 dark:text-sky-300">💧 Hydration</h3>
+    <canvas id="hydrationChart"></canvas>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-lg cursor-pointer hover:ring-2 ring-purple-400" onclick="expandChart('sleepChart')">
+    <h3 class="font-semibold mb-2 text-purple-700 dark:text-purple-300">🛌 Sleep Quality</h3>
+    <canvas id="sleepChart"></canvas>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-lg cursor-pointer hover:ring-2 ring-pink-400" onclick="expandChart('heartActivityChart')">
+    <h3 class="font-semibold mb-2 text-pink-700 dark:text-pink-300">❤️ Heart Rate vs Activity</h3>
+    <canvas id="heartActivityChart"></canvas>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-lg cursor-pointer hover:ring-2 ring-amber-400" onclick="expandChart('goalProgressChart')">
+    <h3 class="font-semibold mb-2 text-amber-700 dark:text-amber-300">🎯 Goal Progress</h3>
+    <canvas id="goalProgressChart"></canvas>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-lg cursor-pointer hover:ring-2 ring-lime-400" onclick="expandChart('chronicHealthChart')">
+    <h3 class="font-semibold mb-2 text-lime-700 dark:text-lime-300">🌿 Chronic Health</h3>
+    <canvas id="chronicHealthChart"></canvas>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-lg cursor-pointer hover:ring-2 ring-rose-400" onclick="expandChart('calorieChart')">
+    <h3 class="font-semibold text-lg mb-2 text-rose-700 dark:text-rose-300">🔥 Burned vs Calorie Intake</h3>
+    <canvas id="calorieChart"></canvas>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-lg relative hover:ring-2 ring-indigo-400">
+    <h3 class="font-semibold text-lg mb-2 text-indigo-700 dark:text-indigo-300">😴 Sleep vs Stress</h3>
+    <canvas id="sleepStressChart" height="300"></canvas>
+    <div id="moodTrend" class="text-sm mt-2 text-gray-600 dark:text-gray-300"></div>
+    <div id="weeklySummary" class="text-sm mt-1 text-gray-600 dark:text-gray-300"></div>
+  </div>
+</div>
+
+      </div>
+    </div>
+
+    </div>
+
+    <!-- CONVERSATION TAB -->
+    <div id="conversation" class="tab-content">
+      <h2 class="text-2xl font-bold mb-2">💬 Conversation</h2>
+      <div id="conversationArea" class="flex flex-col space-y-2"></div>
+    </div>
+
+    <!-- JOURNALING TAB -->
+<div id="journaling" class="tab-content">
+  <h2 class="text-2xl font-bold mb-4 text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
+    📓 Self-Journaling
+  </h2>
+
+  <!-- Journaling Display -->
+  <div id="journalArea" class="flex flex-col space-y-3 max-h-[60vh] overflow-y-auto p-2 bg-white dark:bg-gray-800 rounded-xl shadow-inner">
+    <!-- Entries will be appended here -->
+  </div>
+
+  <!-- Entry Input -->
+  <div class="mt-4 flex items-center gap-2">
+    <input
+      type="text"
+      id="journalInput"
+      placeholder="Write your thought... 💭"
+      class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+    />
+    <button
+      onclick="addJournalEntry()"
+      class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 transition"
+    >
+      Add
+    </button>
+  </div>
+</div>
+
+    <!-- SETTINGS TAB -->
+    <div id="settings" class="tab-content">
+      <h2 class="text-xl font-semibold mb-2">Settings</h2>
+      <div class="bg-white p-4 rounded shadow space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Notification Frequency</label>
+          <select class="mt-1 block w-full rounded border-gray-300 shadow-sm">
+            <option>Immediate</option>
+            <option>Daily Summary</option>
+            <option>Weekly Digest</option>
+          </select>
+        </div>
+        
+        <!-- Toggle Switch -->
+<div class="p-4">
+  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Theme</label>
+  <label class="flex items-center cursor-pointer">
+    <div class="relative">
+      <input type="checkbox" id="darkModeToggle" class="sr-only">
+      <div class="block bg-gray-300 dark:bg-gray-600 w-14 h-8 rounded-full transition"></div>
+      <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform"></div>
+    </div>
+    <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">Dark Mode</span>
+  </label>
+</div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Data Sync</label>
+          <button class="mt-2 bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600">Sync Now</button>
+        </div>
+      </div>
+    </div>
+    <!-- Chart Modal -->
+<div id="chartModal" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 hidden transition-opacity duration-300">
+  <div class="bg-white rounded-lg p-4 relative w-[90%] max-w-3xl shadow-lg animate-slideUp">
+    <button class="absolute top-2 right-2 text-gray-500 hover:text-black text-xl font-bold">&times;</button>
+    <canvas id="expandedChart" class="w-full h-80"></canvas>
+  </div>
+</div>
+
+
+
+
+
+    
+  </div>
+</body>
+</html>
